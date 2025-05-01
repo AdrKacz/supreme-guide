@@ -3,11 +3,11 @@ import csv
 import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from bs4 import BeautifulSoup # type: ignore
+from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urlunparse, urlencode, parse_qs, urljoin
 import uuid
 from src.list_templates import list_templates
-from dotenv import load_dotenv # type: ignore
+from dotenv import load_dotenv
 load_dotenv()
 
 SMTP_SERVER_NAME = os.getenv("SMTP_SERVER_NAME")

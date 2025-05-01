@@ -8,5 +8,6 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "boto3>=1.38.6",
     "fire>=0.7.0",
+    "notion-client>=2.3.0",
     "python-dotenv>=1.1.0",
 ]

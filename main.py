@@ -1,4 +1,4 @@
-import fire # type: ignore
+import fire
 from src.send_emails import send_emails
 from src.export_users import export_users
 from src.list_templates import list_templates

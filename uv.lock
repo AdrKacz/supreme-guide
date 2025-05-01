@@ -137,6 +137,7 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "boto3" },
     { name = "fire" },
+    { name = "httpx" },
     { name = "notion-client" },
     { name = "python-dotenv" },
 ]
@@ -146,6 +147,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "boto3", specifier = ">=1.38.6" },
     { name = "fire", specifier = ">=0.7.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "notion-client", specifier = ">=2.3.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
 ]

@@ -10,13 +10,11 @@ from src.notion import (
 
 load_dotenv()
 
-
 TABLE_NAME = os.getenv("TABLE_NAME")
 CSV_FILE = os.getenv("CSV_FILE")
+NOTION_REGISTERED_USERS_DATABASE_ID = os.getenv("NOTION_REGISTERED_USERS_DATABASE_ID")
 
-
-
-def export_users():
+def update_users():
     session = boto3.Session(profile_name='EffectiveBassoonDeveloper')
     dynamodb = session.client('dynamodb')
     paginator = dynamodb.get_paginator('scan')
@@ -27,28 +25,30 @@ def export_users():
         ExpressionAttributeValues={':metadata': {'S': 'metadata'}}
     )
 
-    rows = []
+    users = []
 
     for page in scan_iterator:
         for item in page.get('Items', []):
             email = item.get('google_email', {}).get('S', '')
             remaining = item.get('remaining_credits', {}).get('N', '0')
-            rows.append({
+            users.append({
                 'Email': email,
                 'Remaining credits': int(remaining)
             })
 
 
     # Write to Notion
-    database = get_database()
-    for row in rows:
+    database = get_database(NOTION_REGISTERED_USERS_DATABASE_ID)
+    for user in users:
         # Check if the user already exists in Notion
-        existing_users = query_database(database['properties'], row)
+        existing_users = query_database(database['properties'], NOTION_REGISTERED_USERS_DATABASE_ID, user)
         if len(existing_users) > 0:
             page_id = existing_users[0]['id']
-            update_page(page_id, database['properties'], row)
-            print(f"Updated user: {row['Email']}")
+            update_page(page_id, database['properties'], user)
+            print(f"Updated user: {user['Email']}")
         else:
-            row["Last onboarding email"] = 0 # Default value
-            create_page(database['properties'], row)
-            print(f"Created user: {row['Email']}")
+            user["Last onboarding email"] = 0 # Default value
+            create_page(database['properties'], NOTION_REGISTERED_USERS_DATABASE_ID, user)
+            print(f"Created user: {user['Email']}")
+    
+    return users

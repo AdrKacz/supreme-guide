@@ -19,6 +19,8 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 APP_DOMAIN = os.getenv("APP_DOMAIN")
 PIXEL_DOMAIN = os.getenv("PIXEL_DOMAIN")
 
+MARKETING_EMAIL = os.getenv("MARKETING_EMAIL")
+
 USE_TEMPLATE = False  # Make sure to set this to True in production
 
 
@@ -65,7 +67,7 @@ def send_template(email: str, template: Template) -> None:
         # Create email
         msg = MIMEMultipart("alternative")
         msg["Subject"] = template.name
-        msg["From"] = "Adrien Kaczmarek <adrien.kaczmarek@le-studio-k.fr>"
+        msg["From"] = MARKETING_EMAIL
         msg["To"] = email
 
         msg.attach(MIMEText(str(soup), "html"))

@@ -6,6 +6,7 @@ from src.get_users import get_users
 from src.list_templates import list_templates
 from src.notion import create_page, update_page
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ def onboarding():
     templates = list_templates()  # List all templates
     users, user_properties = get_users()  # Get the latest users from DynamoDB
     email_sent = {}
+    now = datetime.now()
     for user in users:
         if (
             user.args["Remaining credits"] == 0
@@ -35,6 +37,11 @@ def onboarding():
             send_template(
                 user.args["Email"], templates[user.args["Last onboarding email"]]
             )
+            next_onboarding_email_date = now + timedelta(
+                days=templates[user.args["Last onboarding email"]].wait
+            )
+            user.args["Next onboarding email"] = next_onboarding_email_date.strftime("%Y-%m-%d")
+
             email_sent[user.args["Email"]] = templates[
                 user.args["Last onboarding email"]
             ].name
@@ -66,5 +73,6 @@ if __name__ == "__main__":
             "send_template": send_template,
             "get_users": get_users,
             "list_templates": list_templates,
+            "send_email": send_email,
         }
     )

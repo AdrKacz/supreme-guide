@@ -54,7 +54,7 @@ def update_page(page_id, properties, args):
         properties=get_page(properties, args)
     )
 
-def query_database(properties, database_id, args):
+def query_database(properties, database_id, args, sort_by=None):
     and_filter = []
     for key, value in properties.items():
         if key not in args:
@@ -69,8 +69,17 @@ def query_database(properties, database_id, args):
             })
         else:
             print(f"Unsupported property type: {value['type']}")
-    response = notion.databases.query(
-        database_id=database_id,
-        filter={ "and": and_filter}
-    )
+    if sort_by:
+        response = notion.databases.query(
+            database_id=database_id,
+            filter={ "and": and_filter},
+            sorts=[{
+                "property": sort_by,
+                "direction": "ascending"
+            }])
+    else:
+        response = notion.databases.query(
+            database_id=database_id,
+            filter={ "and": and_filter}
+        )
     return response.get('results', [])

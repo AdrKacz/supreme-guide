@@ -2,6 +2,8 @@
 Marketing, made easy
 
 ```sh
+aws sso login --sso-session=Developer
+
 uv run main.py list_templates
 uv run main.py export_users
 uv run main.py send_emails 0

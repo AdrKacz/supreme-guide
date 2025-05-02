@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 from pathlib import Path
 import httpx
+from src.data.template import Template
 load_dotenv()
 NOTION_REGISTERED_ONBOARDING_DATABASE_ID = os.getenv("NOTION_REGISTERED_ONBOARDING_DATABASE_ID")
 
@@ -27,16 +28,24 @@ def run_server():
         print("Server stopped.")
 
 
-def list_templates():
+def list_templates() -> list[Template]:
     database = get_database(NOTION_REGISTERED_ONBOARDING_DATABASE_ID)
-    pages = query_database(database['properties'], NOTION_REGISTERED_ONBOARDING_DATABASE_ID, {})
-    urls = [page['properties']['Template']['url'] for page in pages]
-    encoded_configs = [url.split('/')[-1] for url in urls]
+    pages = query_database(database['properties'], NOTION_REGISTERED_ONBOARDING_DATABASE_ID, {}, 'Order')
+    templates: list[Template] = []
+    for page in pages:
+        name = page['properties']['Name']['title'][0]['text']['content']
+        wait = page['properties']['Wait (days)']['number']
+        url = page['properties']['Template']['url']
+        encoded_config = url.split('/')[-1]
+        templates.append(Template(
+            name=name,
+            wait=wait,
+            encoded_config=encoded_config
+        ))
 
-    templates = []
     with run_server():
-        for cfg in encoded_configs:
-            r = httpx.get(f'http://localhost:3000/template/{cfg}')
+        for template in templates:
+            r = httpx.get(f'http://localhost:3000/template/{template.encoded_config}')
             r.raise_for_status()
-            templates.append(r.text)
+            template.html = r.text
     return templates

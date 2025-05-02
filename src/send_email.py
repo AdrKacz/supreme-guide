@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urlunparse, urlencode, parse_qs, urljoin
 import uuid
 from dotenv import load_dotenv
+from src.data.template import Template
 load_dotenv()
 
 SMTP_SERVER_NAME = os.getenv("SMTP_SERVER_NAME")
@@ -17,13 +18,13 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 APP_DOMAIN = os.getenv("APP_DOMAIN")
 PIXEL_DOMAIN = os.getenv("PIXEL_DOMAIN")
 
-def send_email(subject: str, html_template: str, email: str):
+def send_email(email: str, template: Template) -> None:
     with smtplib.SMTP(SMTP_SERVER_NAME, SMTP_PORT) as server:
         server.starttls()
         server.login(SMTP_USERNAME, SMTP_PASSWORD)
         print(f"Sending email to {email}")
         # Modify the HTML for this recipient
-        soup = BeautifulSoup(html_template, 'html.parser')
+        soup = BeautifulSoup(template.html, 'html.parser')
 
         for a in soup.find_all('a', href=True):
             parsed_url = urlparse(a['href'])
@@ -34,7 +35,7 @@ def send_email(subject: str, html_template: str, email: str):
                     'utm_source': email,
                     'utm_medium': 'email',
                     'utm_campaign': 'onboarding',
-                    'utm_content': subject
+                    'utm_content': template.name
                 })
                 new_query = urlencode(query, doseq=True)
                 a['href'] = urlunparse(parsed_url._replace(query=new_query))
@@ -42,7 +43,7 @@ def send_email(subject: str, html_template: str, email: str):
         # Add a pixel tracker
         pixel_query = urlencode({
             'email': email,
-            'title': subject,
+            'title': template.name,
             'uuid': str(uuid.uuid4()), # Prevent caching
         })
         pixel_url = urljoin(f"https://{PIXEL_DOMAIN}/", f"pixel?{pixel_query}")
@@ -52,7 +53,7 @@ def send_email(subject: str, html_template: str, email: str):
 
         # Create email
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
+        msg['Subject'] = template.name
         msg['From'] = "Adrien Kaczmarek <adrien.kaczmarek@le-studio-k.fr>"
         msg['To'] = email
 

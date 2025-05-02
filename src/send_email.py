@@ -16,7 +16,7 @@ MARKETING_EMAIL = os.getenv("MARKETING_EMAIL")
 
 
 def send_email(to: str, subject: str, body: str) -> None:
-    print(f"Sending {subject} to {to}")
+    print(f"Sending <{subject}> to {to}")
     with smtplib.SMTP(SMTP_SERVER_NAME, SMTP_PORT) as server:
         server.starttls()
         server.login(SMTP_USERNAME, SMTP_PASSWORD)

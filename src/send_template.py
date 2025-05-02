@@ -25,7 +25,7 @@ USE_TEMPLATE = False  # Make sure to set this to True in production
 
 
 def send_template(email: str, template: Template) -> None:
-    print(f"Sending {template.name} to {email}")
+    print(f"Sending <{template.name}> to {email}")
     if not USE_TEMPLATE:
         print(f"Skipping email to {email} because USE_TEMPLATE is set to False")
         return

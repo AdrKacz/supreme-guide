@@ -29,30 +29,36 @@ def onboarding():
             user.args["Remaining credits"] == 0
             and user.args["Last onboarding email"] == 0
         ):
-            user.args["Last onboarding email"] = (
-                1  # Skip the first onboarding as this user already used all their credits
-            )
-        if user.args["Last onboarding email"] < len(templates):
-            # Last onboarding email is 1-indexed and templates are 0-indexed, so to get the next template we do +1 - 1 = +0
-            send_template(
-                user.args["Email"], templates[user.args["Last onboarding email"]]
-            )
-            next_onboarding_email_date = now + timedelta(
-                days=templates[user.args["Last onboarding email"]].wait
-            )
-            user.args["Next onboarding email"] = next_onboarding_email_date.strftime("%Y-%m-%d")
+            # Skip the first onboarding as this user already used all their credits
+            user.args["Last onboarding email"] = 1
+            user.args["Next onboarding email"] = now.strftime("%Y-%m-%d")
 
-            email_sent[user.args["Email"]] = templates[
-                user.args["Last onboarding email"]
-            ].name
-            user.args["Last onboarding email"] += (
-                1  # Increment the last onboarding email sent
+        all_sent = user.args["Last onboarding email"] >= len(templates)
+        # Check now day is on the day or after the next onboarding email date
+        is_time_to_send = now.strftime("%Y-%m-%d") >= (
+            user.args["Next onboarding email"] or "0000-00-00"
+        )
+        if not all_sent and is_time_to_send:
+            # Last onboarding email is 1-indexed and templates are 0-indexed, so to get the next template we do +1 - 1 = +0
+            template = templates[user.args["Last onboarding email"]]
+            send_template(user.args["Email"], template)
+            next_onboarding_email_date = now + timedelta(days=template.wait)
+            user.args["Next onboarding email"] = next_onboarding_email_date.strftime(
+                "%Y-%m-%d"
+            )
+
+            email_sent[user.args["Email"]] = template.name
+            # Increment the last onboarding email sent
+            user.args["Last onboarding email"] += 1
+        else:
+            print(
+                f"Skipping {user.args['Email']}, already sent {user.args['Last onboarding email']} emails and next email is scheduled for {user.args['Next onboarding email']}"
             )
         if user.page_id:
-            print(f"Updating user {user.args['Email']}")
+            print(f"Updating {user.args['Email']}")
             update_page(user.page_id, user_properties, user.args)
         else:
-            print(f"Creating user {user.args['Email']}")
+            print(f"Creating {user.args['Email']}")
             create_page(user_properties, NOTION_REGISTERED_USERS_DATABASE_ID, user.args)
 
     print(f"Sending analytics to owner ({OWNER_EMAIL})")

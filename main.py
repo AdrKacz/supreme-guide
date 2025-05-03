@@ -1,17 +1,12 @@
+import load_env  # noqa: F401
 import fire
-import os
+from os import getenv
 from src.send_template import send_template
 from src.send_email import send_email
 from src.get_users import get_users
 from src.list_templates import list_templates
 from src.notion import create_page, update_page
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
-
-load_dotenv()
-
-OWNER_EMAIL = os.getenv("OWNER_EMAIL")
-NOTION_REGISTERED_USERS_DATABASE_ID = os.getenv("NOTION_REGISTERED_USERS_DATABASE_ID")
 
 
 def onboarding():
@@ -25,6 +20,9 @@ def onboarding():
     email_sent = {}
     now = datetime.now()
     for user in users:
+        # if user.args["Email"] != "adrien.kaczmarek@gmail.com":
+        #     print(f"Skipping user {user.args['Email']}")
+        #     continue
         if (
             user.args["Remaining credits"] == 0
             and user.args["Last onboarding email"] == 0
@@ -59,11 +57,15 @@ def onboarding():
             update_page(user.page_id, user_properties, user.args)
         else:
             print(f"Creating {user.args['Email']}")
-            create_page(user_properties, NOTION_REGISTERED_USERS_DATABASE_ID, user.args)
+            create_page(
+                user_properties,
+                getenv("NOTION_REGISTERED_USERS_DATABASE_ID"),
+                user.args,
+            )
 
-    print(f"Sending analytics to owner ({OWNER_EMAIL})")
+    print(f"Sending analytics to owner ({getenv('OWNER_EMAIL')})")
     send_email(
-        to=OWNER_EMAIL,
+        to=getenv("OWNER_EMAIL"),
         subject="List of emails sent for onboarding campaign",
         body=f"Sent {len(email_sent)} emails:\n"
         + "\n".join(

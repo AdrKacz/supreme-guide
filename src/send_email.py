@@ -1,28 +1,16 @@
 import smtplib
-import os
-from dotenv import load_dotenv
+from os import getenv
 from email.mime.text import MIMEText
-
-load_dotenv()
-
-
-SMTP_SERVER_NAME = os.getenv("SMTP_SERVER_NAME")
-SMTP_PORT = os.getenv("SMTP_PORT")
-
-SMTP_USERNAME = os.getenv("SMTP_USERNAME")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-
-MARKETING_EMAIL = os.getenv("MARKETING_EMAIL")
 
 
 def send_email(to: str, subject: str, body: str) -> None:
     print(f"Sending <{subject}> to {to}")
-    with smtplib.SMTP(SMTP_SERVER_NAME, SMTP_PORT) as server:
+    with smtplib.SMTP(getenv("SMTP_SERVER_NAME"), getenv("SMTP_PORT")) as server:
         server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.login(getenv("SMTP_USERNAME"), getenv("SMTP_PASSWORD"))
         msg = MIMEText(body, "plain")
         msg["Subject"] = subject
-        msg["From"] = MARKETING_EMAIL
+        msg["From"] = getenv("MARKETING_EMAIL")
         msg["To"] = to
         server.sendmail(msg["From"], to, msg.as_string())
         print(f"-- Sent email to {to}")

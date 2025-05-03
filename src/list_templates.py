@@ -1,17 +1,11 @@
-import os
+from os import getenv
 from src.notion import get_database, query_database
 import subprocess
 import time
 from contextlib import contextmanager
-from dotenv import load_dotenv
 from pathlib import Path
 import httpx
 from src.data.template import Template
-
-load_dotenv()
-NOTION_REGISTERED_ONBOARDING_DATABASE_ID = os.getenv(
-    "NOTION_REGISTERED_ONBOARDING_DATABASE_ID"
-)
 
 
 @contextmanager
@@ -34,10 +28,9 @@ def run_server():
 
 
 def list_templates() -> list[Template]:
-    database = get_database(NOTION_REGISTERED_ONBOARDING_DATABASE_ID)
-    pages = query_database(
-        database["properties"], NOTION_REGISTERED_ONBOARDING_DATABASE_ID, {}, "Order"
-    )
+    database_id = getenv("NOTION_REGISTERED_ONBOARDING_DATABASE_ID")
+    database = get_database(database_id)
+    pages = query_database(database["properties"], database_id, {}, "Order")
     templates: list[Template] = []
     for page in pages:
         name = page["properties"]["Name"]["title"][0]["text"]["content"]

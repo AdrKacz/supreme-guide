@@ -1,27 +1,13 @@
 import smtplib
-import os
+from os import getenv
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urlunparse, urlencode, parse_qs, urljoin
 import uuid
 from src.data.template import Template
-from dotenv import load_dotenv
 
-load_dotenv()
-
-SMTP_SERVER_NAME = os.getenv("SMTP_SERVER_NAME")
-SMTP_PORT = os.getenv("SMTP_PORT")
-
-SMTP_USERNAME = os.getenv("SMTP_USERNAME")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-
-APP_DOMAIN = os.getenv("APP_DOMAIN")
-PIXEL_DOMAIN = os.getenv("PIXEL_DOMAIN")
-
-MARKETING_EMAIL = os.getenv("MARKETING_EMAIL")
-
-USE_TEMPLATE = False  # Make sure to set this to True in production
+USE_TEMPLATE = True  # Make sure to set this to True in production
 
 
 def send_template(email: str, template: Template) -> None:
@@ -29,15 +15,15 @@ def send_template(email: str, template: Template) -> None:
     if not USE_TEMPLATE:
         print(f"Skipping email to {email} because USE_TEMPLATE is set to False")
         return
-    with smtplib.SMTP(SMTP_SERVER_NAME, SMTP_PORT) as server:
+    with smtplib.SMTP(getenv("SMTP_SERVER_NAME"), getenv("SMTP_PORT")) as server:
         server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.login(getenv("SMTP_USERNAME"), getenv("SMTP_PASSWORD"))
         # Modify the HTML for this recipient
         soup = BeautifulSoup(template.html, "html.parser")
 
         for a in soup.find_all("a", href=True):
             parsed_url = urlparse(a["href"])
-            if APP_DOMAIN in parsed_url.netloc:
+            if getenv("APP_DOMAIN") in parsed_url.netloc:
                 # Parse existing query, add new UTM params
                 query = parse_qs(parsed_url.query)
                 query.update(
@@ -59,7 +45,9 @@ def send_template(email: str, template: Template) -> None:
                 "uuid": str(uuid.uuid4()),  # Prevent caching
             }
         )
-        pixel_url = urljoin(f"https://{PIXEL_DOMAIN}/", f"pixel?{pixel_query}")
+        pixel_url = urljoin(
+            f"https://{getenv('PIXEL_DOMAIN')}/", f"pixel?{pixel_query}"
+        )
         print(f"-- Pixel URL: {pixel_url}")
         img_tag = soup.new_tag("img", src=pixel_url, width="1", height="1")
         soup.body.append(img_tag)
@@ -67,7 +55,7 @@ def send_template(email: str, template: Template) -> None:
         # Create email
         msg = MIMEMultipart("alternative")
         msg["Subject"] = template.name
-        msg["From"] = MARKETING_EMAIL
+        msg["From"] = getenv("MARKETING_EMAIL")
         msg["To"] = email
 
         msg.attach(MIMEText(str(soup), "html"))

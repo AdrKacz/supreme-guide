@@ -1,12 +1,7 @@
-import os
+from os import getenv
 from notion_client import Client
-from dotenv import load_dotenv
 
-load_dotenv()
-
-NOTION_INTEGRATION_SECRET = os.getenv("NOTION_INTEGRATION_SECRET")
-
-notion = Client(auth=NOTION_INTEGRATION_SECRET)
+notion = Client(auth=getenv("NOTION_INTEGRATION_SECRET"))
 
 
 def extract_args(properties) -> dict:

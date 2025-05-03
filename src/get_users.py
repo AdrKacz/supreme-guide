@@ -1,14 +1,7 @@
-import os
+from os import getenv
 import boto3
 from src.data.user import User
 from src.notion import get_database, query_database, extract_args
-from dotenv import load_dotenv
-
-load_dotenv()
-
-TABLE_NAME = os.getenv("TABLE_NAME")
-CSV_FILE = os.getenv("CSV_FILE")
-NOTION_REGISTERED_USERS_DATABASE_ID = os.getenv("NOTION_REGISTERED_USERS_DATABASE_ID")
 
 
 def get_users() -> tuple[list[User], dict]:
@@ -17,7 +10,7 @@ def get_users() -> tuple[list[User], dict]:
     paginator = dynamodb.get_paginator("scan")
 
     scan_iterator = paginator.paginate(
-        TableName=TABLE_NAME,
+        TableName=getenv("TABLE_NAME"),
         FilterExpression="sk = :metadata",
         ExpressionAttributeValues={":metadata": {"S": "metadata"}},
     )
@@ -33,12 +26,13 @@ def get_users() -> tuple[list[User], dict]:
             )
 
     # Write to Notion
-    database = get_database(NOTION_REGISTERED_USERS_DATABASE_ID)
+    database_id = getenv("NOTION_REGISTERED_USERS_DATABASE_ID")
+    database = get_database(database_id)
     for user in users:
         # Check if the user already exists in Notion
         existing_users = query_database(
             database["properties"],
-            NOTION_REGISTERED_USERS_DATABASE_ID,
+            database_id,
             {"Email": user.args["Email"]},
         )
         if len(existing_users) > 0:

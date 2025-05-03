@@ -34,7 +34,7 @@ def onboarding():
         all_sent = user.args["Last onboarding email"] >= len(templates)
         # Check now day is on the day or after the next onboarding email date
         is_time_to_send = now.strftime("%Y-%m-%d") >= (
-            user.args["Next onboarding email"] or "0000-00-00"
+            user.args.get("Next onboarding email", "0000-00-00")
         )
         if not all_sent and is_time_to_send:
             # Last onboarding email is 1-indexed and templates are 0-indexed, so to get the next template we do +1 - 1 = +0
